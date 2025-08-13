@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const { sequelize } = require('./models');
 
 // Initialize Express app
@@ -27,6 +28,18 @@ app.use('/api/evaluations', require('./routes/evaluations'));
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
+
+// Serve static files from the React app in production
+if (process.env.NODE_ENV === 'production') {
+  // Set static folder
+  app.use(express.static(path.join(__dirname, '../client/build')));
+
+  // The "catchall" handler: for any request that doesn't
+  // match one above, send back React's index.html file.
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/build/index.html'));
+  });
+}
 
 // Error handling middleware
 app.use((err, req, res, next) => {

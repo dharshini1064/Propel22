@@ -13,7 +13,9 @@
     "heroku-postbuild": "npm run install-all && npm run build",
     "deploy": "npm run build && npm run start",
     "railway-build": "npm run install-all && npm run build",
-    "railway-start": "npm start"
+    "railway-start": "npm start",
+    "render-build": "npm run install-all && npm run build",
+    "render-start": "npm start"
   },
   "dependencies": {
     "concurrently": "^7.6.0"

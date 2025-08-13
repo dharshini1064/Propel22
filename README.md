@@ -24,7 +24,7 @@ Propel22 is a SaaS partnership management platform that automates joint business
 - **Frontend**: React.js with Material UI
 - **Backend**: Node.js/Express
 - **Database**: PostgreSQL
-- **Hosting**: AWS/Vercel or Docker
+- **Hosting**: Railway, AWS, Vercel or Docker
 
 ## Getting Started
 
@@ -52,6 +52,44 @@ chmod +x setup.sh
 # Run the setup script
 ./setup.sh
 ```
+
+## Railway Deployment
+
+This project is configured for easy deployment on Railway. Follow these steps to deploy:
+
+1. **Fork or Clone the Repository**
+   - Ensure you have the latest code with all fixes
+
+2. **Create a Railway Account**
+   - Sign up at [Railway.app](https://railway.app/)
+
+3. **Create a New Project**
+   - From the Railway dashboard, create a new project
+   - Choose "Deploy from GitHub repo"
+   - Select your Propel22 repository
+
+4. **Add PostgreSQL Database**
+   - Click "+ New Service" in your project
+   - Select "Database" → "PostgreSQL"
+   - Wait for the database to be provisioned
+
+5. **Configure Environment Variables**
+   - In your web service, go to the "Variables" tab
+   - Add the following variables:
+     ```
+     NODE_ENV=production
+     JWT_SECRET=your_secure_random_string
+     PORT=5000
+     ```
+   - Railway will automatically add the `DATABASE_URL` variable
+
+6. **Deploy the Application**
+   - Railway will automatically deploy your application
+   - Monitor the deployment logs for any issues
+
+7. **Access Your Application**
+   - Once deployed, click on "Generate Domain" to get a public URL
+   - Your application will be available at the generated domain
 
 ### Manual Setup
 

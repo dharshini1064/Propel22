@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const { sequelize } = require('./models');
 
 // Initialize Express app
@@ -28,6 +29,23 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
+// Serve static files from the React app
+if (process.env.NODE_ENV === 'production') {
+  // Set static folder for production
+  app.use(express.static(path.join(__dirname, '../client/build')));
+
+  // The "catchall" handler: for any request that doesn't
+  // match one above, send back React's index.html file.
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/build/index.html'));
+  });
+} else {
+  // Root route handler for development
+  app.get('/', (req, res) => {
+    res.json({ message: 'Propel22 API is running. Please use the React development server for the frontend.' });
+  });
+}
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -42,11 +60,30 @@ const startServer = async () => {
     console.log('Database connected successfully');
   } catch (error) {
     console.error('Database connection failed:', error.message);
-    console.log('Starting server without database connection in development mode...');
+    console.error('Error details:', error);
+    
+    if (process.env.NODE_ENV === 'production') {
+      console.log('Attempting to start server in production despite database connection failure...');
+      // In production, we might want to exit and let the platform retry
+      // process.exit(1);
+    } else {
+      console.log('Starting server without database connection in development mode...');
+    }
   } finally {
-    // Start listening regardless of database connection in development
-    app.listen(PORT, () => {
+    // Start listening regardless of database connection
+    const server = app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
+      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`Database URL: ${process.env.DATABASE_URL ? 'Set (using connection string)' : 'Not set (using individual params)'}`);
+    });
+    
+    // Handle server shutdown gracefully
+    process.on('SIGTERM', () => {
+      console.log('SIGTERM received, shutting down gracefully');
+      server.close(() => {
+        console.log('Server closed');
+        process.exit(0);
+      });
     });
   }
 };

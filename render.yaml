@@ -2,7 +2,7 @@ services:
   - type: web
     name: propel22-api
     env: node
-    plan: free
+    plan: starter
     buildCommand: cd server && npm install
     startCommand: cd server && npm start
     envVars:
@@ -20,7 +20,7 @@ services:
   - type: web
     name: propel22-client
     env: static
-    plan: free
+    plan: starter
     buildCommand: cd client && npm install && npm run build
     staticPublishPath: client/build
     envVars:
@@ -31,4 +31,5 @@ databases:
   - name: propel22-db
     databaseName: propel22
     user: propel22
+    plan: starter
     plan: free

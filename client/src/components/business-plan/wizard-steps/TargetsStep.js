@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Typography,
   Grid,
@@ -18,29 +18,104 @@ import InfoIcon from '@mui/icons-material/Info';
 import Tooltip from '@mui/material/Tooltip';
 
 function TargetsStep({ data, onDataChange }) {
+  // Handle Net New I-ACV change and calculate derived values
   const handleNetNewIACVChange = (event) => {
-    const value = parseFloat(event.target.value);
+    const value = parseFloat(event.target.value) || 0;
+    
+    // Calculate derived values based on the orange Net New ACV input
+    const derivedValues = calculateDerivedValues(value, data.salesMetrics);
+    
     onDataChange({
       targets: {
         ...data.targets,
+        ...derivedValues,
         netNewIACV: value,
       },
     });
   };
-
-  const handleQuarterlyChange = (quarter, field, value) => {
-    onDataChange({
-      targets: {
-        ...data.targets,
-        quarterlyBreakdown: {
-          ...data.targets.quarterlyBreakdown,
-          [quarter]: {
-            ...data.targets.quarterlyBreakdown[quarter],
-            [field]: parseFloat(value),
-          },
-        },
+  
+  // Calculate all derived values based on the Net New I-ACV (orange input)
+  const calculateDerivedValues = (netNewIACV, salesMetrics) => {
+    // Extract metrics needed for calculations
+    const { 
+      outboundACV, inboundACV, 
+      outboundSqlWinRate, inboundSqlWinRate,
+      outboundTalSqlRate, inboundTalSqlRate 
+    } = salesMetrics;
+    
+    // Calculate outbound/inbound revenue split (60/40 by default)
+    const outboundRevenue = netNewIACV * 0.6;
+    const inboundRevenue = netNewIACV * 0.4;
+    
+    // Calculate logos (deals) needed based on ACV
+    const outboundLogos = Math.ceil(outboundRevenue / outboundACV);
+    const inboundLogos = Math.ceil(inboundRevenue / inboundACV);
+    
+    // Calculate SQLs needed based on win rates
+    const outboundSQLs = Math.ceil(outboundLogos / (outboundSqlWinRate / 100));
+    const inboundSQLs = Math.ceil(inboundLogos / (inboundSqlWinRate / 100));
+    
+    // Calculate TAL needed based on SQL conversion rates
+    const outboundTAL = Math.ceil(outboundSQLs / (outboundTalSqlRate / 100));
+    const inboundTAL = Math.ceil(inboundSQLs / (inboundTalSqlRate / 100));
+    
+    // Calculate quarterly breakdown (default distribution: 25%, 30%, 25%, 20%)
+    const quarterlyBreakdown = {
+      q1: {
+        revenue: Math.round(netNewIACV * 0.25),
+        logos: Math.ceil((outboundLogos + inboundLogos) * 0.25),
+        sqls: Math.ceil((outboundSQLs + inboundSQLs) * 0.25),
+        tal: Math.ceil((outboundTAL + inboundTAL) * 0.25)
       },
-    });
+      q2: {
+        revenue: Math.round(netNewIACV * 0.30),
+        logos: Math.ceil((outboundLogos + inboundLogos) * 0.30),
+        sqls: Math.ceil((outboundSQLs + inboundSQLs) * 0.30),
+        tal: Math.ceil((outboundTAL + inboundTAL) * 0.30)
+      },
+      q3: {
+        revenue: Math.round(netNewIACV * 0.25),
+        logos: Math.ceil((outboundLogos + inboundLogos) * 0.25),
+        sqls: Math.ceil((outboundSQLs + inboundSQLs) * 0.25),
+        tal: Math.ceil((outboundTAL + inboundTAL) * 0.25)
+      },
+      q4: {
+        revenue: Math.round(netNewIACV * 0.20),
+        logos: Math.ceil((outboundLogos + inboundLogos) * 0.20),
+        sqls: Math.ceil((outboundSQLs + inboundSQLs) * 0.20),
+        tal: Math.ceil((outboundTAL + inboundTAL) * 0.20)
+      }
+    };
+    
+    return {
+      inboundLogos,
+      outboundLogos,
+      inboundSQLs,
+      outboundSQLs,
+      inboundTAL,
+      outboundTAL,
+      quarterlyBreakdown
+    };
+  };
+  
+  // Recalculate when component mounts or when salesMetrics change
+  useEffect(() => {
+    if (data.targets.netNewIACV) {
+      const derivedValues = calculateDerivedValues(data.targets.netNewIACV, data.salesMetrics);
+      onDataChange({
+        targets: {
+          ...data.targets,
+          ...derivedValues
+        }
+      });
+    }
+  }, [data.salesMetrics]);
+
+  // Quarterly changes are now read-only as they're calculated from the Net New I-ACV
+  const handleQuarterlyChange = (quarter, field, value) => {
+    // This function is kept for compatibility but won't be used
+    // as quarterly values are now calculated automatically
+    console.log(`Manual quarterly changes disabled - values are formula-based`);
   };
 
   // Calculate totals
@@ -69,8 +144,8 @@ function TargetsStep({ data, onDataChange }) {
         <TextField
           label={
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              Net New I-ACV
-              <Tooltip title="The total annual contract value for new business" placement="top">
+              Net New I-ACV (Orange Input)
+              <Tooltip title="The total annual contract value for new business - this is the primary input that drives all calculations" placement="top">
                 <InfoIcon fontSize="small" sx={{ ml: 1, color: 'text.secondary' }} />
               </Tooltip>
             </Box>
@@ -81,6 +156,7 @@ function TargetsStep({ data, onDataChange }) {
           fullWidth
           InputProps={{
             startAdornment: <InputAdornment position="start">$</InputAdornment>,
+            sx: { bgcolor: '#FFF3E0' } // Light orange background to highlight this is the primary input
           }}
         />
       </Box>
@@ -88,8 +164,14 @@ function TargetsStep({ data, onDataChange }) {
       <Divider sx={{ my: 3 }} />
 
       <Typography variant="subtitle1" gutterBottom>
-        Quarterly Breakdown
+        Quarterly Breakdown (Formula-Calculated)
       </Typography>
+      
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="body2" color="text.secondary">
+          The values below are automatically calculated based on the Net New I-ACV input and sales metrics.
+        </Typography>
+      </Box>
 
       <TableContainer component={Paper} sx={{ mt: 2 }}>
         <Table>
@@ -113,10 +195,11 @@ function TargetsStep({ data, onDataChange }) {
                   size="small"
                   type="number"
                   value={data.targets.quarterlyBreakdown.q1.revenue}
-                  onChange={(e) => handleQuarterlyChange('q1', 'revenue', e.target.value)}
                   InputProps={{
                     startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                    readOnly: true,
                   }}
+                  disabled
                 />
               </TableCell>
               <TableCell align="right">
@@ -124,10 +207,11 @@ function TargetsStep({ data, onDataChange }) {
                   size="small"
                   type="number"
                   value={data.targets.quarterlyBreakdown.q2.revenue}
-                  onChange={(e) => handleQuarterlyChange('q2', 'revenue', e.target.value)}
                   InputProps={{
                     startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                    readOnly: true,
                   }}
+                  disabled
                 />
               </TableCell>
               <TableCell align="right">
@@ -135,10 +219,11 @@ function TargetsStep({ data, onDataChange }) {
                   size="small"
                   type="number"
                   value={data.targets.quarterlyBreakdown.q3.revenue}
-                  onChange={(e) => handleQuarterlyChange('q3', 'revenue', e.target.value)}
                   InputProps={{
                     startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                    readOnly: true,
                   }}
+                  disabled
                 />
               </TableCell>
               <TableCell align="right">
@@ -146,10 +231,11 @@ function TargetsStep({ data, onDataChange }) {
                   size="small"
                   type="number"
                   value={data.targets.quarterlyBreakdown.q4.revenue}
-                  onChange={(e) => handleQuarterlyChange('q4', 'revenue', e.target.value)}
                   InputProps={{
                     startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                    readOnly: true,
                   }}
+                  disabled
                 />
               </TableCell>
               <TableCell align="right">${totals.revenue.toLocaleString()}</TableCell>
@@ -163,7 +249,8 @@ function TargetsStep({ data, onDataChange }) {
                   size="small"
                   type="number"
                   value={data.targets.quarterlyBreakdown.q1.logos}
-                  onChange={(e) => handleQuarterlyChange('q1', 'logos', e.target.value)}
+                  InputProps={{ readOnly: true }}
+                  disabled
                 />
               </TableCell>
               <TableCell align="right">
@@ -171,7 +258,8 @@ function TargetsStep({ data, onDataChange }) {
                   size="small"
                   type="number"
                   value={data.targets.quarterlyBreakdown.q2.logos}
-                  onChange={(e) => handleQuarterlyChange('q2', 'logos', e.target.value)}
+                  InputProps={{ readOnly: true }}
+                  disabled
                 />
               </TableCell>
               <TableCell align="right">
@@ -179,7 +267,8 @@ function TargetsStep({ data, onDataChange }) {
                   size="small"
                   type="number"
                   value={data.targets.quarterlyBreakdown.q3.logos}
-                  onChange={(e) => handleQuarterlyChange('q3', 'logos', e.target.value)}
+                  InputProps={{ readOnly: true }}
+                  disabled
                 />
               </TableCell>
               <TableCell align="right">
@@ -187,7 +276,8 @@ function TargetsStep({ data, onDataChange }) {
                   size="small"
                   type="number"
                   value={data.targets.quarterlyBreakdown.q4.logos}
-                  onChange={(e) => handleQuarterlyChange('q4', 'logos', e.target.value)}
+                  InputProps={{ readOnly: true }}
+                  disabled
                 />
               </TableCell>
               <TableCell align="right">{totals.logos}</TableCell>
@@ -201,7 +291,8 @@ function TargetsStep({ data, onDataChange }) {
                   size="small"
                   type="number"
                   value={data.targets.quarterlyBreakdown.q1.sqls}
-                  onChange={(e) => handleQuarterlyChange('q1', 'sqls', e.target.value)}
+                  InputProps={{ readOnly: true }}
+                  disabled
                 />
               </TableCell>
               <TableCell align="right">
@@ -209,7 +300,8 @@ function TargetsStep({ data, onDataChange }) {
                   size="small"
                   type="number"
                   value={data.targets.quarterlyBreakdown.q2.sqls}
-                  onChange={(e) => handleQuarterlyChange('q2', 'sqls', e.target.value)}
+                  InputProps={{ readOnly: true }}
+                  disabled
                 />
               </TableCell>
               <TableCell align="right">
@@ -217,7 +309,8 @@ function TargetsStep({ data, onDataChange }) {
                   size="small"
                   type="number"
                   value={data.targets.quarterlyBreakdown.q3.sqls}
-                  onChange={(e) => handleQuarterlyChange('q3', 'sqls', e.target.value)}
+                  InputProps={{ readOnly: true }}
+                  disabled
                 />
               </TableCell>
               <TableCell align="right">
@@ -225,7 +318,8 @@ function TargetsStep({ data, onDataChange }) {
                   size="small"
                   type="number"
                   value={data.targets.quarterlyBreakdown.q4.sqls}
-                  onChange={(e) => handleQuarterlyChange('q4', 'sqls', e.target.value)}
+                  InputProps={{ readOnly: true }}
+                  disabled
                 />
               </TableCell>
               <TableCell align="right">{totals.sqls}</TableCell>
@@ -239,7 +333,8 @@ function TargetsStep({ data, onDataChange }) {
                   size="small"
                   type="number"
                   value={data.targets.quarterlyBreakdown.q1.tal}
-                  onChange={(e) => handleQuarterlyChange('q1', 'tal', e.target.value)}
+                  InputProps={{ readOnly: true }}
+                  disabled
                 />
               </TableCell>
               <TableCell align="right">
@@ -247,7 +342,8 @@ function TargetsStep({ data, onDataChange }) {
                   size="small"
                   type="number"
                   value={data.targets.quarterlyBreakdown.q2.tal}
-                  onChange={(e) => handleQuarterlyChange('q2', 'tal', e.target.value)}
+                  InputProps={{ readOnly: true }}
+                  disabled
                 />
               </TableCell>
               <TableCell align="right">
@@ -255,7 +351,8 @@ function TargetsStep({ data, onDataChange }) {
                   size="small"
                   type="number"
                   value={data.targets.quarterlyBreakdown.q3.tal}
-                  onChange={(e) => handleQuarterlyChange('q3', 'tal', e.target.value)}
+                  InputProps={{ readOnly: true }}
+                  disabled
                 />
               </TableCell>
               <TableCell align="right">
@@ -263,7 +360,8 @@ function TargetsStep({ data, onDataChange }) {
                   size="small"
                   type="number"
                   value={data.targets.quarterlyBreakdown.q4.tal}
-                  onChange={(e) => handleQuarterlyChange('q4', 'tal', e.target.value)}
+                  InputProps={{ readOnly: true }}
+                  disabled
                 />
               </TableCell>
               <TableCell align="right">{totals.tal}</TableCell>
@@ -274,7 +372,17 @@ function TargetsStep({ data, onDataChange }) {
 
       <Box sx={{ mt: 3 }}>
         <Typography variant="body2" color="text.secondary">
-          Note: The quarterly breakdown should align with your annual targets. The system will automatically calculate the required SQLs and TAL based on your conversion rates.
+          Note: All values are automatically calculated based on the orange Net New I-ACV input and the sales metrics defined in Step 1. The quarterly breakdown follows a 25/30/25/20 distribution across Q1-Q4.
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          Formula calculations:
+          <ul>
+            <li>Outbound Revenue = Net New I-ACV × 60%</li>
+            <li>Inbound Revenue = Net New I-ACV × 40%</li>
+            <li>Logos = Revenue ÷ Average Deal Size (ACV)</li>
+            <li>SQLs = Logos ÷ (SQL-to-Win Rate ÷ 100)</li>
+            <li>TAL = SQLs ÷ (TAL-to-SQL Rate ÷ 100)</li>
+          </ul>
         </Typography>
       </Box>
     </Box>

@@ -20,8 +20,10 @@ import { Formik, Form, Field } from 'formik';
 
 const validationSchema = Yup.object({
   name: Yup.string().required('Partner name is required'),
-  contactPerson: Yup.string().required('Contact person is required'),
-  email: Yup.string().email('Invalid email').required('Email is required'),
+  website: Yup.string().url('Invalid URL format'),
+  industry: Yup.string(),
+  size: Yup.string(),
+  address: Yup.string(),
   phone: Yup.string().required('Phone number is required'),
 });
 
@@ -38,8 +40,9 @@ const PartnerList = () => {
   const columns = [
     { field: 'id', headerName: 'ID', width: 90 },
     { field: 'name', headerName: 'Partner Name', width: 200 },
-    { field: 'contactPerson', headerName: 'Contact Person', width: 200 },
-    { field: 'email', headerName: 'Email', width: 200 },
+    { field: 'website', headerName: 'Website', width: 200 },
+    { field: 'industry', headerName: 'Industry', width: 150 },
+    { field: 'size', headerName: 'Size', width: 120 },
     { field: 'phone', headerName: 'Phone', width: 150 },
     { field: 'createdAt', headerName: 'Created At', width: 200, 
       valueFormatter: (params) => new Date(params.value).toLocaleDateString() 
@@ -133,8 +136,10 @@ const PartnerList = () => {
         <Formik
           initialValues={{
             name: '',
-            contactPerson: '',
-            email: '',
+            website: '',
+            industry: '',
+            size: '',
+            address: '',
             phone: ''
           }}
           validationSchema={validationSchema}
@@ -154,21 +159,41 @@ const PartnerList = () => {
                 />
                 <Field
                   as={TextField}
-                  name="contactPerson"
-                  label="Contact Person"
+                  name="website"
+                  label="Website"
                   fullWidth
                   margin="normal"
-                  error={touched.contactPerson && Boolean(errors.contactPerson)}
-                  helperText={touched.contactPerson && errors.contactPerson}
+                  error={touched.website && Boolean(errors.website)}
+                  helperText={touched.website && errors.website}
                 />
                 <Field
                   as={TextField}
-                  name="email"
-                  label="Email"
+                  name="industry"
+                  label="Industry"
                   fullWidth
                   margin="normal"
-                  error={touched.email && Boolean(errors.email)}
-                  helperText={touched.email && errors.email}
+                  error={touched.industry && Boolean(errors.industry)}
+                  helperText={touched.industry && errors.industry}
+                />
+                <Field
+                  as={TextField}
+                  name="size"
+                  label="Size (small, medium, large, enterprise)"
+                  fullWidth
+                  margin="normal"
+                  error={touched.size && Boolean(errors.size)}
+                  helperText={touched.size && errors.size}
+                />
+                <Field
+                  as={TextField}
+                  name="address"
+                  label="Address"
+                  fullWidth
+                  margin="normal"
+                  multiline
+                  rows={3}
+                  error={touched.address && Boolean(errors.address)}
+                  helperText={touched.address && errors.address}
                 />
                 <Field
                   as={TextField}

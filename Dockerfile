@@ -32,6 +32,10 @@ COPY --from=base /app/client/build ./client/build
 RUN npm install --only=production
 RUN cd server && npm install --only=production
 
+# Add healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:5000/health || exit 1
+
 # Expose port
 EXPOSE 5000
 

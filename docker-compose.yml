@@ -39,6 +39,12 @@ services:
       JWT_EXPIRES_IN: 7d
     ports:
       - "5000:5000"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     networks:
       - propel22-network
 
@@ -50,7 +56,8 @@ services:
     container_name: propel22-client
     restart: always
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     ports:
       - "80:80"
     networks:

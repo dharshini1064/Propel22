@@ -151,7 +151,20 @@ npm start
 docker-compose up -d
 ```
 
-### Option 3: Cloud Deployment
+### Option 3: Fly.io Deployment
+
+This project is configured for easy deployment on Fly.io. Follow the instructions in [FLY_DEPLOYMENT.md](FLY_DEPLOYMENT.md) for detailed steps.
+
+```bash
+# For Windows users
+.\deploy-to-fly.ps1
+
+# For Unix/Mac users
+chmod +x deploy-to-fly.sh
+./deploy-to-fly.sh
+```
+
+### Option 4: Cloud Deployment
 
 See the [Deployment Guide](docs/deployment-guide.md) for detailed instructions on deploying to AWS, Vercel, or other cloud providers.
 

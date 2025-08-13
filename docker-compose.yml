@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:14-alpine
+    container_name: propel22-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: propel22
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - propel22-network
+
+  # Node.js API Server
+  api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: propel22-api
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      DB_HOST: postgres
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: propel22
+      DB_PORT: 5432
+      JWT_SECRET: your_jwt_secret_key
+      JWT_EXPIRES_IN: 7d
+    ports:
+      - "5000:5000"
+    networks:
+      - propel22-network
+
+  # React Frontend
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: propel22-client
+    restart: always
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+    networks:
+      - propel22-network
+
+networks:
+  propel22-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

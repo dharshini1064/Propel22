@@ -1,0 +1,32 @@
+{
+  "name": "propel22-server",
+  "version": "1.0.0",
+  "description": "Backend server for Propel22 - Automated Joint Business Planning & Bookkeeping Platform",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "jest",
+    "build": "echo 'No build step needed for Node.js'",
+    "migrate": "node -e \"const { sequelize } = require('./models'); sequelize.sync({ alter: true }).then(() => { console.log('Database synced'); process.exit(0); })\""
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.0",
+    "pg": "^8.8.0",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.28.0",
+    "validator": "^13.7.0"
+  },
+  "devDependencies": {
+    "jest": "^29.3.1",
+    "nodemon": "^2.0.20",
+    "supertest": "^6.3.3"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

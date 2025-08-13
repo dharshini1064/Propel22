@@ -1,0 +1,32 @@
+{
+  "name": "propel22",
+  "version": "1.0.0",
+  "description": "Propel22 - Automated Joint Business Planning & Bookkeeping Platform",
+  "main": "index.js",
+  "scripts": {
+    "install-all": "npm install && cd client && npm install && cd ../server && npm install",
+    "client": "cd client && npm start",
+    "server": "cd server && npm run dev",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "build": "cd client && npm run build",
+    "start": "cd server && npm start",
+    "heroku-postbuild": "npm run install-all && npm run build",
+    "deploy": "npm run build && npm run start"
+  },
+  "dependencies": {
+    "concurrently": "^7.6.0"
+  },
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
+  },
+  "keywords": [
+    "business-planning",
+    "bookkeeping",
+    "react",
+    "node.js",
+    "postgresql"
+  ],
+  "author": "Dharshini",
+  "license": "MIT"
+}

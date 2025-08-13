@@ -1,6 +1,6 @@
 // API Configuration
 const getApiUrl = () => {
-  // For production on Fly.io
+  // For production on Render or other platforms
   if (process.env.REACT_APP_API_URL) {
     return process.env.REACT_APP_API_URL;
   }

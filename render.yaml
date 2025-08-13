@@ -32,4 +32,4 @@ databases:
     databaseName: propel22
     user: propel22
     plan: starter
-    plan: free
+    

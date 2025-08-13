@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Typography,
   Grid,
@@ -16,6 +16,39 @@ import {
 } from '@mui/material';
 
 function ProfitLossStep({ data, onDataChange }) {
+  // Calculate commissions based on Net New I-ACV and commission rates
+  const calculateCommissions = () => {
+    // Extract metrics needed for calculations
+    const { outboundCommissionRate, inboundCommissionRate } = data.salesMetrics;
+    const netNewIACV = data.targets.netNewIACV || 0;
+    
+    // Calculate outbound/inbound revenue split (60/40 by default)
+    const outboundRevenue = netNewIACV * 0.6;
+    const inboundRevenue = netNewIACV * 0.4;
+    
+    // Calculate commissions
+    const outboundCommission = Math.round(outboundRevenue * (outboundCommissionRate / 100));
+    const inboundCommission = Math.round(inboundRevenue * (inboundCommissionRate / 100));
+    
+    return {
+      inbound: inboundCommission,
+      outbound: outboundCommission
+    };
+  };
+  
+  // Update commissions when component mounts or when relevant data changes
+  useEffect(() => {
+    if (data.targets.netNewIACV) {
+      const commissions = calculateCommissions();
+      onDataChange({
+        profitLoss: {
+          ...data.profitLoss,
+          commissions
+        }
+      });
+    }
+  }, [data.targets.netNewIACV, data.salesMetrics]);
+  
   const handleCostChange = (costType, value) => {
     onDataChange({
       profitLoss: {
@@ -156,8 +189,14 @@ function ProfitLossStep({ data, onDataChange }) {
       <Divider sx={{ my: 3 }} />
 
       <Typography variant="subtitle1" gutterBottom>
-        Profit & Loss Summary
+        Profit & Loss Summary (Formula-Calculated)
       </Typography>
+      
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="body2" color="text.secondary">
+          The commissions are automatically calculated based on the Net New I-ACV input and commission rates from Step 1.
+        </Typography>
+      </Box>
 
       <TableContainer component={Paper} sx={{ mt: 2 }}>
         <Table>
@@ -178,13 +217,13 @@ function ProfitLossStep({ data, onDataChange }) {
               <TableCell component="th" scope="row">
                 Partner Commissions - Inbound
               </TableCell>
-              <TableCell align="right">${data.profitLoss.commissions.inbound.toLocaleString()}</TableCell>
+              <TableCell align="right" sx={{ bgcolor: '#F5F5F5' }}>${data.profitLoss.commissions.inbound.toLocaleString()}</TableCell>
             </TableRow>
             <TableRow>
               <TableCell component="th" scope="row">
                 Partner Commissions - Outbound
               </TableCell>
-              <TableCell align="right">${data.profitLoss.commissions.outbound.toLocaleString()}</TableCell>
+              <TableCell align="right" sx={{ bgcolor: '#F5F5F5' }}>${data.profitLoss.commissions.outbound.toLocaleString()}</TableCell>
             </TableRow>
             <TableRow>
               <TableCell component="th" scope="row">
@@ -206,7 +245,17 @@ function ProfitLossStep({ data, onDataChange }) {
 
       <Box sx={{ mt: 3 }}>
         <Typography variant="body2" color="text.secondary">
-          Note: The profit and loss statement is automatically calculated based on your targets and costs. Adjust the values as needed to achieve your desired profitability.
+          Note: The profit and loss statement is automatically calculated based on your targets and costs. The commissions are derived from the orange Net New I-ACV input in Step 2.
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          Formula calculations:
+          <ul>
+            <li>Outbound Commission = (Net New I-ACV × 60%) × (Outbound Commission Rate ÷ 100)</li>
+            <li>Inbound Commission = (Net New I-ACV × 40%) × (Inbound Commission Rate ÷ 100)</li>
+            <li>Total Revenue = Sum of all quarterly revenue targets</li>
+            <li>Total Costs = Team CTC + Travel + Marketing + Tools/Office</li>
+            <li>PBIT = Total Revenue - (Total Costs + Total Commissions)</li>
+          </ul>
         </Typography>
       </Box>
     </Box>

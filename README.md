@@ -134,7 +134,21 @@ This will start both the client (React) and server (Node.js) in development mode
 
 ## Deployment Options
 
-### Option 1: Traditional Server Deployment
+### Option 1: Render Deployment (Recommended Alternative)
+
+This project is configured for easy deployment on Render.com. Follow the instructions in [RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md) for detailed steps.
+
+- **Blueprint Deployment**: Automatically sets up all services using the included `render.yaml` file
+- **Free Tier**: Includes free static sites, web services, and databases for development
+- **Easy Setup**: No CLI tools required, deploy directly from your browser
+
+For instructions on creating free instances, see [CREATE_FREE_RENDER_INSTANCE.md](CREATE_FREE_RENDER_INSTANCE.md).
+
+### Option 2: Railway Deployment
+
+Refer to the [Railway Deployment](#railway-deployment) section above or see [RAILWAY_DEPLOYMENT.md](RAILWAY_DEPLOYMENT.md) for detailed instructions.
+
+### Option 3: Traditional Server Deployment
 
 ```bash
 # Build the client
@@ -144,16 +158,16 @@ npm run build
 npm start
 ```
 
-### Option 2: Docker Deployment
+### Option 4: Docker Deployment
 
 ```bash
 # Build and run with Docker Compose
 docker-compose up -d
 ```
 
-### Option 3: Fly.io Deployment
+### Option 5: Fly.io Deployment
 
-This project is configured for easy deployment on Fly.io. Follow the instructions in [FLY_DEPLOYMENT.md](FLY_DEPLOYMENT.md) for detailed steps.
+This project is configured for deployment on Fly.io. Follow the instructions in [FLY_DEPLOYMENT.md](FLY_DEPLOYMENT.md) for detailed steps.
 
 ```bash
 # For Windows users
@@ -164,7 +178,7 @@ chmod +x deploy-to-fly.sh
 ./deploy-to-fly.sh
 ```
 
-### Option 4: Cloud Deployment
+### Option 6: Other Cloud Providers
 
 See the [Deployment Guide](docs/deployment-guide.md) for detailed instructions on deploying to AWS, Vercel, or other cloud providers.
 
